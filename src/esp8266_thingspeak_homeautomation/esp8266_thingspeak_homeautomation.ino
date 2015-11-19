@@ -1,8 +1,8 @@
 #include <ESP8266WiFi.h>
 #include "thingspeak_custom.h"
 
-#define COMP          1
-#define HOME          0
+#define COMP          0
+#define HOME          1
 #define DEBUG_SERIAL  1
 
 #if COMP
@@ -30,7 +30,7 @@
 using namespace thingspeak_custom;
 
 WiFiClient client;
-ThingSpeak light_thingspeak(&client);
+ThingSpeak ts_light_no1(&client);
 
 void setup() 
 {
@@ -65,6 +65,8 @@ void setup()
 
   DEBUG_PO("\nConnected. IP address: ");
   DEBUG_POLN(WiFi.localIP());
+
+  ts_light_no1.SetChannelInfo(THINGSPEAK_LIGHT_NO1_CHANNEL, THINGSPEAK_LIGHT_NO1_READ_KEY, "");
 }
 
 void loop() 
@@ -74,6 +76,7 @@ void loop()
   if (counter != 0)
   {
     counter--;
+    DEBUG_POLN(ts_light_no1.GetLastValueFieldFeed("field1"));
   }
 
   delay(1000);

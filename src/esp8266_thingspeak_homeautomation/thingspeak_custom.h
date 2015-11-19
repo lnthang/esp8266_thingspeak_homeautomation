@@ -11,8 +11,8 @@ namespace thingspeak_custom
       ThingSpeak(WiFiClient *client, String channel = "", String read_key = "", String write_key = "");
       virtual ~ThingSpeak(void);
 
-      void ThingSpeak_SetChannelInfo(String channel, String read_key, String write_key);
-      int ThingSpeak_GetLastValueFieldFeed(String field_name);
+      void SetChannelInfo(String channel, String read_key, String write_key);
+      int GetLastValueFieldFeed(String field_name);
 
     private:
       String channel_str;
@@ -20,9 +20,10 @@ namespace thingspeak_custom
       String write_key_str;
       WiFiClient *client;
 
-      void ThingSpeak_Connect(void);
-      void ThingSpeak_Disconnect(void);
+      void Connect(void);
+      void Disconnect(void);
   };
 }
 
 #endif  // __THINGSPEAK_CUSTOM_H__
+

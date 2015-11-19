@@ -1,5 +1,13 @@
 #include "thingspeak_custom.h"
 
+#if 0
+  #define THINGSPEAK_DEBUG(msg)     Serial.print(msg)
+  #define THINGSPEAK_DEBUGLN(msg)   Serial.println(msg)
+#else
+  #define THINGSPEAK_DEBUG(msg)     {}
+  #define THINGSPEAK_DEBUGLN(msg)   {}
+#endif
+
 #define THINGSPEAK_HOST                     "api.thingspeak.com"
 
 /* Http request example
@@ -49,7 +57,7 @@ namespace thingspeak_custom {
    *  Function: 
    *    Set Channel info
    ************************************************************/
-  void ThingSpeak::ThingSpeak_SetChannelInfo(String channel, String read_key, String write_key)
+  void ThingSpeak::SetChannelInfo(String channel, String read_key, String write_key)
   {
     this->channel_str = channel;
     this->read_key_str = read_key;
@@ -61,14 +69,12 @@ namespace thingspeak_custom {
    *    Get the last value in the field feed of 
    *    selected channel from api.thingspeak.com
    ************************************************************/
-  int ThingSpeak::ThingSpeak_GetLastValueFieldFeed(String field_name)
+  int ThingSpeak::GetLastValueFieldFeed(String field_name)
   {
     String http_code = THINGSPEAK_FORM_HTTP_READ_LAST_ENTRY_IN_FIELD_FEED_REQUEST(this->channel_str, this->read_key_str, field_name);
     int field_value = 0;
     
-    this->ThingSpeak_Disconnect();
-
-    // DEBUG_POLN(http_code);
+    this->Connect();
     this->client->print(http_code);
 
     delay(50);
@@ -92,7 +98,7 @@ namespace thingspeak_custom {
 
     field_value = this->client->readStringUntil('\n').toInt();
 
-    this->ThingSpeak_Disconnect();
+    this->Disconnect();
 
     return field_value;
   }
@@ -101,11 +107,13 @@ namespace thingspeak_custom {
    *  Function: 
    *    Establish connection to api.thingspeak.com
    ************************************************************/
-  void ThingSpeak::ThingSpeak_Connect(void)
+  void ThingSpeak::Connect(void)
   {
+    THINGSPEAK_DEBUG("Connecting to api.thingspeak.com");
     while (!this->client->connect(THINGSPEAK_HOST, 80))
     {
       delay(100);
+      THINGSPEAK_DEBUG(".");
       // TODO : do something here if stuck too long
     }
 
@@ -116,12 +124,13 @@ namespace thingspeak_custom {
    *  Function: 
    *    Disconnect from api.thingspeak.com
    ************************************************************/
-  void ThingSpeak::ThingSpeak_Disconnect(void)
+  void ThingSpeak::Disconnect(void)
   {
     if (this->client->connected())
     {
       this->client->stop();
       this->client->flush();
     }
+    THINGSPEAK_DEBUG("Disconnected from to api.thingspeak.com");
   }
 }
