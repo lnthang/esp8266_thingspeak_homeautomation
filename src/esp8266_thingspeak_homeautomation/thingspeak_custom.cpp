@@ -38,14 +38,20 @@
 #define THINGSPEAK_FORM_HTTP_READ_LAST_ENTRY_IN_FIELD_FEED_REQUEST(channel, key, field) \
         ("GET /channels/" + channel +"/field/" + field + "/last.txt?key=" + key + " HTTP/1.1\nHost: " + THINGSPEAK_HOST + "\r\n\r\n")
 
+/* Http request example
+ * POST /talkbacks/4059/commands/execute?api_key=CIN3LKFSII32LUYN HTTP/1.1
+ * Host: api.thingspeak.com
+ */
+#define THINGSPEAK_HTTP_POST_GET_TALKBACK_COMMAND_REQUEST(talkback_id, key) \
+        ("POST /talkbacks/" + talkback_id + "/commands/execute?api_key=" + key + " HTTP/1.1\nHost: " + THINGSPEAK_HOST + "\r\n\r\n")
+
 
 namespace thingspeak_custom {
-  ThingSpeak::ThingSpeak(WiFiClient *client, String channel, String read_key, String write_key)
+  ThingSpeak::ThingSpeak(Client *client, String channel, String read_key, String write_key, String talkback_id, String talkback_key)
   {
-    this->channel_str = channel;
-    this->read_key_str = read_key;
-    this->write_key_str = write_key;
     this->client = client;
+
+    SetChannelInfo(channel, read_key, write_key, talkback_id, talkback_key);
   }
 
   ThingSpeak::~ThingSpeak(void)
@@ -57,11 +63,15 @@ namespace thingspeak_custom {
    *  Function: 
    *    Set Channel info
    ************************************************************/
-  void ThingSpeak::SetChannelInfo(String channel, String read_key, String write_key)
+  void ThingSpeak::SetChannelInfo(String channel, String read_key, String write_key, String talkback_id, String talkback_key)
   {
     this->channel_str = channel;
     this->read_key_str = read_key;
     this->write_key_str = write_key;
+
+    this->talkback_id_str = talkback_id;
+    this->talkback_key_str = talkback_key;
+    this->talkback_http_post = THINGSPEAK_HTTP_POST_GET_TALKBACK_COMMAND_REQUEST(talkback_id, talkback_key);
   }
 
   /************************************************************
@@ -74,7 +84,7 @@ namespace thingspeak_custom {
     String http_code = THINGSPEAK_FORM_HTTP_READ_LAST_ENTRY_IN_FIELD_FEED_REQUEST(this->channel_str, this->read_key_str, field_name);
     int field_value = 0;
     
-    this->Connect();
+    Connect();
     this->client->print(http_code);
 
     delay(50);
@@ -98,9 +108,18 @@ namespace thingspeak_custom {
 
     field_value = this->client->readStringUntil('\n').toInt();
 
-    this->Disconnect();
+    Disconnect();
 
     return field_value;
+  }
+
+  /************************************************************
+   *  Function: 
+   *    Get TalkBack command if any from channel.
+   ************************************************************/
+  String ThingSpeak::GetTalkBackCmd(void)
+  {
+    this->client->print(this->talkback_http_post);
   }
 
   /************************************************************
