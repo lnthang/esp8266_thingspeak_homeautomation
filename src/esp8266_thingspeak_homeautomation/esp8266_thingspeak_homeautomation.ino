@@ -18,6 +18,8 @@
 #define D10   1   // GPIO1
 
 #define NETWORK_SEL_PIN   D5
+#define LED_1   D1
+#define LED_2   D2
 
 //#if COMP
   #define WIFI_SSID_COMP   "MISFIT SW"
@@ -53,8 +55,12 @@ void setup()
   Serial.begin(115200);
   #endif
 
-  pinMode(0, INPUT);
   pinMode(NETWORK_SEL_PIN, INPUT);
+
+  pinMode(LED_1, OUTPUT);
+  pinMode(LED_2, OUTPUT);
+  digitalWrite(LED_1, 1);
+  digitalWrite(LED_2, 1);
 
   delay(1000);
 
@@ -87,21 +93,25 @@ void setup()
   DEBUG_POLN(WiFi.localIP());
 
   ts_light_no1.SetChannelInfo(THINGSPEAK_LIGHT_NO1_CHANNEL, THINGSPEAK_LIGHT_NO1_READ_KEY, "", "4059", "CIN3LKFSII32LUYN");
+
+  DEBUG_PO("\nRunning...");
 }
 
 void loop() 
 {
-  static int counter = 5;
-  
-  if (counter != 0)
-  {
-    counter--;
-    DEBUG_POLN(ts_light_no1.GetLastValueFieldFeed("field1"));
+  String talkback_cmd = "";
+  talkback_cmd = ts_light_no1.GetTalkBackCmd();
+
+  if (talkback_cmd.equals("LED_1_ON\r")) {
+    digitalWrite(LED_1, 0);
+  } else if (talkback_cmd.equals("LED_1_OFF\r")) {
+    digitalWrite(LED_1, 1);
+  } else if (talkback_cmd.equals("LED_2_ON\r")) {
+    digitalWrite(LED_2, 0);
+  } else if (talkback_cmd.equals("LED_2_OFF\r")) {
+    digitalWrite(LED_2, 1);
   }
 
-  // DEBUG_POLN(digitalRead(0));
-  ts_light_no1.GetTalkBackCmd();
-
-  delay(1000);
+  delay(200);
 }
 
