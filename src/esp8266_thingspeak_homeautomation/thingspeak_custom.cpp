@@ -86,27 +86,21 @@ namespace thingspeak_custom {
     
     Connect();
     this->client->print(http_code);
-
-    delay(50);
-    while (!this->client->available());
-
-    // First return line format "HTTP-Version Status-Code Reason-Phrase\r\n"
-    // Ignore http version
-    this->client->readStringUntil(' ');
-    // Read the return code
-    if (this->client->readStringUntil(' ').toInt() != 200)
+    THINGSPEAK_DEBUGLN("\nSent 'read last entry in field feed' request.\nWaiting response from server");
+    
+    while (!this->client->available())
     {
-      return -1;    // Something went wrong. Return 0xFFFF for error reading
+      THINGSPEAK_DEBUG(".");
     }
+    THINGSPEAK_DEBUGLN("");
 
-    // Ignore the rest info of header in http response
-    // Read until get the empty line -> End of header
-    while (!this->client->readStringUntil('\n').equals("\r"));
-
-    // Ignore the line denote for the raw length of body
-    this->client->readStringUntil('\n');
-
-    field_value = this->client->readStringUntil('\n').toInt();
+    // Read the return code
+    if (ReadHeader() != 200) {
+      THINGSPEAK_DEBUGLN("Reading data failed");
+      field_value = -1; // Something went wrong. Return 0xFFFF for error reading
+    } else {
+      field_value = ReadBody().toInt();
+    }
 
     Disconnect();
 
@@ -119,7 +113,29 @@ namespace thingspeak_custom {
    ************************************************************/
   String ThingSpeak::GetTalkBackCmd(void)
   {
+    String talk_back_cmd = "";
+    
+    Connect();
     this->client->print(this->talkback_http_post);
+    THINGSPEAK_DEBUGLN("\nPolling for TalkBack command.\nWaiting response from server");
+
+    while (!this->client->available())
+    {
+      THINGSPEAK_DEBUG(".");
+    }
+    THINGSPEAK_DEBUGLN("");
+    
+    // Read the return code
+    if (ReadHeader() != 200) {
+      THINGSPEAK_DEBUGLN("Reading data failed");
+      talk_back_cmd = "-1";    // Something went wrong. Return 0xFFFF for error reading
+    } else {
+      talk_back_cmd = ReadBody();
+    }
+    
+    Disconnect();
+    
+    return talk_back_cmd;
   }
 
   /************************************************************
@@ -135,6 +151,7 @@ namespace thingspeak_custom {
       THINGSPEAK_DEBUG(".");
       // TODO : do something here if stuck too long
     }
+    THINGSPEAK_DEBUGLN("");
 
     this->client->flush();
   }
@@ -150,6 +167,35 @@ namespace thingspeak_custom {
       this->client->stop();
       this->client->flush();
     }
-    THINGSPEAK_DEBUG("Disconnected from to api.thingspeak.com");
+    THINGSPEAK_DEBUGLN("Disconnected from to api.thingspeak.com");
+  }
+
+  int ThingSpeak::ReadHeader(void)
+  {
+    int header_status_code = 0;
+
+    // "HTTP-Version Status-Code Reason-Phrase\r\n"
+    // Ignore http version
+    this->client->readStringUntil(' ');
+
+    // Read the return code
+    header_status_code = this->client->readStringUntil(' ').toInt();
+
+    // Ignore the rest info of header in http response
+    // Read until get the empty line -> End of header
+    while (!this->client->readStringUntil('\n').equals("\r"));
+
+    return header_status_code;
+  }
+  
+  String ThingSpeak::ReadBody(void)
+  {
+    String body = "";
+    // Ignore the line denote for the raw length of body
+    this->client->readStringUntil('\n');
+    
+    body = this->client->readStringUntil('\n');
+    
+    return body;
   }
 }

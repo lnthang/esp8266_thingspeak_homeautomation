@@ -86,7 +86,7 @@ void setup()
   DEBUG_PO("\nConnected. IP address: ");
   DEBUG_POLN(WiFi.localIP());
 
-  ts_light_no1.SetChannelInfo(THINGSPEAK_LIGHT_NO1_CHANNEL, THINGSPEAK_LIGHT_NO1_READ_KEY, "", "", "");
+  ts_light_no1.SetChannelInfo(THINGSPEAK_LIGHT_NO1_CHANNEL, THINGSPEAK_LIGHT_NO1_READ_KEY, "", "4059", "CIN3LKFSII32LUYN");
 }
 
 void loop() 
@@ -99,7 +99,8 @@ void loop()
     DEBUG_POLN(ts_light_no1.GetLastValueFieldFeed("field1"));
   }
 
-  DEBUG_POLN(digitalRead(0));
+  // DEBUG_POLN(digitalRead(0));
+  ts_light_no1.GetTalkBackCmd();
 
   delay(1000);
 }
