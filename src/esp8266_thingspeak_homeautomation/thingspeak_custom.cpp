@@ -116,14 +116,23 @@ namespace thingspeak_custom {
     String talk_back_cmd = "";
     
     Connect();
-    this->client->print(this->talkback_http_post);
-    THINGSPEAK_DEBUGLN("\nPolling for TalkBack command.\nWaiting response from server");
 
-    while (!this->client->available())
-    {
-      THINGSPEAK_DEBUG(".");
+    // this->client->print(this->talkback_http_post);
+    // THINGSPEAK_DEBUGLN("\n-> Polling for TalkBack command.\nWaiting response from server");
+
+    // delay(10);
+
+    // while (!this->client->available())
+    // {
+      // Serial.print("!");
+    // }
+    // THINGSPEAK_DEBUGLN("");
+    if (SendHttpRequest(this->talkback_http_post) != 0)
+    { // Something wrong happened
+      Disconnect();
+      Serial.println("Send POST request failed.");
+      return "-1";
     }
-    THINGSPEAK_DEBUGLN("");
     
     // Read the return code
     if (ReadHeader() != 200) {
@@ -170,9 +179,28 @@ namespace thingspeak_custom {
     THINGSPEAK_DEBUGLN("Disconnected from to api.thingspeak.com");
   }
 
+  int ThingSpeak::SendHttpRequest(String msg)
+  {
+    int status_code = -1;  // 0 ~ Success, -1 ~ Timeout, -2 Unknown failure
+    int timeout = 10000;
+
+    this->client->print(msg);
+    while(timeout--)
+    {
+      if (this->client->available())
+      {
+        status_code = 0;
+        break;
+      }
+    }
+
+    return status_code;
+  }
+
   int ThingSpeak::ReadHeader(void)
   {
     int header_status_code = 0;
+    int halt_counter = 0;
 
     // "HTTP-Version Status-Code Reason-Phrase\r\n"
     // Ignore http version
@@ -183,7 +211,15 @@ namespace thingspeak_custom {
 
     // Ignore the rest info of header in http response
     // Read until get the empty line -> End of header
-    while (!this->client->readStringUntil('\n').equals("\r"));
+    while (!this->client->readStringUntil('\n').equals("\r"))
+    {
+      halt_counter++;
+      if (halt_counter >= 5000)
+      {
+        header_status_code = -1;
+        break;
+      }
+    }
 
     return header_status_code;
   }

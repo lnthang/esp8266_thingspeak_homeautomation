@@ -37,6 +37,7 @@ namespace thingspeak_custom
     
     void Connect(void);
     void Disconnect(void);
+    int SendHttpRequest(String msg); 
     int ReadHeader(void);
     String ReadBody(void);
   };

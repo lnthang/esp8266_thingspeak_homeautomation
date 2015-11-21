@@ -20,6 +20,7 @@
 #define NETWORK_SEL_PIN   D5
 #define LED_1   D1
 #define LED_2   D2
+#define LED_3   D4
 
 //#if COMP
   #define WIFI_SSID_COMP   "MISFIT SW"
@@ -59,8 +60,10 @@ void setup()
 
   pinMode(LED_1, OUTPUT);
   pinMode(LED_2, OUTPUT);
+  pinMode(LED_3, OUTPUT);
   digitalWrite(LED_1, 1);
   digitalWrite(LED_2, 1);
+  digitalWrite(LED_3, 1);
 
   delay(1000);
 
@@ -102,7 +105,12 @@ void loop()
   String talkback_cmd = "";
   talkback_cmd = ts_light_no1.GetTalkBackCmd();
 
-  if (talkback_cmd.equals("LED_1_ON\r")) {
+  // Toggle and LED to indicate that it is still running
+  digitalWrite(LED_3, !digitalRead(LED_3));
+
+  if (talkback_cmd.equals("\r")) {
+    // DEBUG_POLN("No command");
+  } else if (talkback_cmd.equals("LED_1_ON\r")) {
     digitalWrite(LED_1, 0);
   } else if (talkback_cmd.equals("LED_1_OFF\r")) {
     digitalWrite(LED_1, 1);
