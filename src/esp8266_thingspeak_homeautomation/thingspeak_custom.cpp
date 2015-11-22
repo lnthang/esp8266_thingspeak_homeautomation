@@ -85,14 +85,12 @@ namespace thingspeak_custom {
     int field_value = 0;
     
     Connect();
-    this->client->print(http_code);
-    THINGSPEAK_DEBUGLN("\nSent 'read last entry in field feed' request.\nWaiting response from server");
-    
-    while (!this->client->available())
-    {
-      THINGSPEAK_DEBUG(".");
+
+    if (SendHttpRequest(this->talkback_http_post) != 0)
+    { // Something wrong happened
+      Disconnect();
+      return -1;
     }
-    THINGSPEAK_DEBUGLN("");
 
     // Read the return code
     if (ReadHeader() != 200) {
@@ -117,20 +115,10 @@ namespace thingspeak_custom {
     
     Connect();
 
-    // this->client->print(this->talkback_http_post);
-    // THINGSPEAK_DEBUGLN("\n-> Polling for TalkBack command.\nWaiting response from server");
-
-    // delay(10);
-
-    // while (!this->client->available())
-    // {
-      // Serial.print("!");
-    // }
-    // THINGSPEAK_DEBUGLN("");
     if (SendHttpRequest(this->talkback_http_post) != 0)
     { // Something wrong happened
       Disconnect();
-      Serial.println("Send POST request failed.");
+      // Serial.println("Send POST request failed.");
       return "-1";
     }
     
@@ -145,6 +133,14 @@ namespace thingspeak_custom {
     Disconnect();
     
     return talk_back_cmd;
+  }
+
+  int ThingSpeak::UpdateStatus(String msg)
+  {
+    int status_code = 0;
+    String http_code = THINGSPEAK_FORM_HTTP_WRITE_1_FIELD_REQUEST(this->write_key_str, msg);
+
+    return status_code;
   }
 
   /************************************************************

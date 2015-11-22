@@ -95,7 +95,7 @@ void setup()
   DEBUG_PO("\nConnected. IP address: ");
   DEBUG_POLN(WiFi.localIP());
 
-  ts_light_no1.SetChannelInfo(THINGSPEAK_LIGHT_NO1_CHANNEL, THINGSPEAK_LIGHT_NO1_READ_KEY, "", "4059", "CIN3LKFSII32LUYN");
+  ts_light_no1.SetChannelInfo(THINGSPEAK_LIGHT_NO1_CHANNEL, THINGSPEAK_LIGHT_NO1_READ_KEY, "F9I3HN9MA22DOE1L", "4059", "CIN3LKFSII32LUYN");
 
   DEBUG_PO("\nRunning...");
 }

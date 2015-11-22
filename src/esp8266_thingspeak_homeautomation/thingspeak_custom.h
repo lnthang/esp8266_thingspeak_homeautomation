@@ -24,6 +24,7 @@ namespace thingspeak_custom
                         String talkback_key);
     int GetLastValueFieldFeed(String field_name);
     String GetTalkBackCmd(void);
+    int UpdateStatus(String msg);
     
   private:
     String channel_str;
